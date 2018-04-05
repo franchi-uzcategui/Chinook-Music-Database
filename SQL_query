@@ -1,0 +1,69 @@
+/* Query 1 - query used for first insight */
+
+
+SELECT DISTINCT
+  C.Email,
+  C.FirstName,
+  C.LastName,
+  SUM(IL.UnitPrice * IL.Quantity),
+  G.Name
+FROM Genre G
+JOIN Track T
+  ON G.GenreId = T.GenreId
+JOIN InvoiceLine IL
+  ON IL.TrackId = T.TrackId
+JOIN Invoice I
+  ON I.InvoiceId = IL.InvoiceId
+JOIN Customer C
+  ON C.CustomerId = I.CustomerId
+GROUP BY 1
+ORDER BY 4 desc;
+
+
+/* Query 2 - query used for second insight */
+SELECT
+  G.Name Genre,
+  MIN(Milliseconds/60000) Min_minutes,
+  MAX(Milliseconds/60000) Max_minutes
+FROM Genre G
+JOIN Track T
+  ON G.GenreId = T.GenreId
+GROUP BY 1;
+
+
+/* Query 3 - query used for third insight */
+SELECT
+  G.Name Genre_Name,
+  SUM(T.Bytes),
+  I.BillingCountry
+FROM Genre G
+JOIN Track T
+  ON G.GenreId = T.GenreId
+JOIN InvoiceLine IL
+  ON IL.TrackId = T.TrackId
+JOIN Invoice I
+  ON I.InvoiceId = IL.InvoiceId
+WHERE G.Name LIKE 'Rock%'
+GROUP BY 1,3      
+ORDER BY 2 desc;
+
+
+
+
+/* Query 4 - query used for fourth insight */
+SELECT DISTINCT C.Email,
+  sum(T.Bytes) Customer_Total_Bytes,
+  CASE
+    WHEN sum(T.Bytes) > 700000000 THEN 'Thanks for your order! You get 10 free tracks'
+     WHEN sum(T.Bytes) between 300000000 and 699999999 THEN 'Thanks for your order! You get 5 free tracks'
+    ELSE 'Thanks for your order! You get 2 free tracks'
+  END AS 'Rewards'
+FROM Customer C
+JOIN Invoice I
+  ON C.CustomerId = I.CustomerId
+JOIN InvoiceLine IL
+  ON IL.InvoiceId = I.InvoiceId
+JOIN Track T
+  ON T.TrackId = IL.TrackId
+GROUP BY C.Email
+ORDER BY  Customer_Total_Bytes DESC;
